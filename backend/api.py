@@ -1,3 +1,4 @@
+# import socket
 from datetime import datetime
 from fastapi import FastAPI, Body, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -5,7 +6,7 @@ from uvicorn import run
 from playhouse.shortcuts import model_to_dict
 from pydantic import BaseModel
 
-from backend.db import User, Message
+from db import User, Message
 from hasher import hash_password, verify_password
 
 
@@ -103,9 +104,11 @@ async def user_message(current_user: User = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=400, detail="invalid name")
 
-    messages = Message.select().where(Message.from_user == user)
+    messages = Message.select().where(Message.from_user == user or
+                                      Message.to_user == user)
 
     return [(model_to_dict(i)["text"],
+             model_to_dict(i)["from_user"]["name"],
              model_to_dict(i)["to_user"]["name"],
              model_to_dict(i)["time"])
             for i in messages]
@@ -133,6 +136,11 @@ async def post_message(data: MessagePost = Body(), current_user: User = Depends(
             message["time"],
             message["from_user"]["name"],
             message["to_user"]["name"])
+
+
+@app.get("/users")
+async def get_users(current_user: User = Depends(auf_token)):
+    return [model_to_dict(i)["name"] for i in User.select()]
 
 
 if __name__ == "__main__":
