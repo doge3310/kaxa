@@ -104,8 +104,8 @@ async def user_message(current_user: User = Depends(get_current_user)):
     if not user:
         raise HTTPException(status_code=400, detail="invalid name")
 
-    messages = Message.select().where(Message.from_user == user or
-                                      Message.to_user == user)
+    messages = Message.select().where((Message.from_user == user) |
+                                      (Message.to_user == user))
 
     return [(model_to_dict(i)["text"],
              model_to_dict(i)["from_user"]["name"],

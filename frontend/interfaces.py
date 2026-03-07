@@ -68,6 +68,3 @@ def get_users(server_ip: str, token: str) -> list:
     )
 
     return req.json()
-
-
-print(get_messages("192.168.1.7", "user1"))
